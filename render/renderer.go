@@ -23,6 +23,7 @@ SOFTWARE.
 package render
 
 import (
+	"embed"
 	"errors"
 	"image"
 	"image/color"
@@ -33,6 +34,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 
 	"github.com/disintegration/imaging"
 	"github.com/lafriks/go-tiled"
@@ -86,10 +88,13 @@ func NewRendererWithFileSystem(m *tiled.Map, fs fs.FS) (*Renderer, error) {
 }
 
 func (r *Renderer) open(f string) (io.ReadCloser, error) {
-	if r.fs != nil {
-		return r.fs.Open(f)
+	if r.fs == nil {
+		return os.Open(f)
 	}
-	return os.Open(f)
+	if _, ok := r.fs.(embed.FS); ok {
+		f = filepath.ToSlash(f)
+	}
+	return r.fs.Open(f)
 }
 
 func (r *Renderer) getTileImage(tile *tiled.LayerTile) (image.Image, error) {

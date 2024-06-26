@@ -23,6 +23,7 @@ SOFTWARE.
 package tiled
 
 import (
+	"embed"
 	"encoding/xml"
 	"io"
 	"io/fs"
@@ -68,6 +69,9 @@ func newLoader(options ...LoaderOption) *loader {
 func (l *loader) open(name string) (fs.File, error) {
 	if l == nil || l.FileSystem == nil {
 		return os.Open(name)
+	}
+	if _, ok := l.FileSystem.(embed.FS); ok {
+		name = filepath.ToSlash(name)
 	}
 	return l.FileSystem.Open(name)
 }
